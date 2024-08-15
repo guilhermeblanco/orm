@@ -34,7 +34,7 @@ class DefaultRepositoryFactoryTest extends TestCase
         $this->configuration
             ->expects(self::any())
             ->method('getDefaultRepositoryClassName')
-            ->will(self::returnValue(DDC869PaymentRepository::class));
+            ->willReturn(DDC869PaymentRepository::class);
     }
 
     public function testCreatesRepositoryFromDefaultRepositoryClass(): void
@@ -71,7 +71,7 @@ class DefaultRepositoryFactoryTest extends TestCase
         $this->entityManager
             ->expects(self::any())
             ->method('getClassMetadata')
-            ->will(self::returnValue($customMetadata));
+            ->willReturn($customMetadata);
 
         self::assertInstanceOf(
             DDC753DefaultRepository::class,
@@ -111,7 +111,7 @@ class DefaultRepositoryFactoryTest extends TestCase
     private function buildClassMetadata(string $className): ClassMetadata&MockObject
     {
         $metadata = $this->createMock(ClassMetadata::class);
-        $metadata->method('getName')->will(self::returnValue($className));
+        $metadata->method('getName')->willReturn($className);
         $metadata->name = $className;
 
         $metadata->customRepositoryClassName = null;

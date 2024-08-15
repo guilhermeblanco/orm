@@ -226,7 +226,7 @@ class SQLFilterTest extends OrmFunctionalTestCase
 
         $em->expects(self::any())
             ->method('getFilters')
-            ->will(self::returnValue($filterCollection));
+            ->willReturn($filterCollection);
 
         return $filterCollection;
     }
@@ -238,12 +238,12 @@ class SQLFilterTest extends OrmFunctionalTestCase
         $conn->expects(self::once())
             ->method('quote')
             ->with(self::equalTo('en'))
-            ->will(self::returnValue("'en'"));
+            ->willReturn("'en'");
 
         $em = $this->getMockEntityManager();
         $em->expects(self::once())
             ->method('getConnection')
-            ->will(self::returnValue($conn));
+            ->willReturn($conn);
 
         $filterCollection = $this->addMockFilterCollection($em);
         $filterCollection
@@ -267,7 +267,7 @@ class SQLFilterTest extends OrmFunctionalTestCase
         $em = $this->getMockEntityManager();
         $em->expects(self::once())
             ->method('getConnection')
-            ->will(self::returnValue($conn));
+            ->willReturn($conn);
 
         $filter = new MyLocaleFilter($em);
 
@@ -283,12 +283,12 @@ class SQLFilterTest extends OrmFunctionalTestCase
         $conn->expects(self::once())
             ->method('quote')
             ->with(self::equalTo('en'))
-            ->will(self::returnValue("'en'"));
+            ->willReturn("'en'");
 
         $em = $this->getMockEntityManager();
         $em->expects(self::once())
             ->method('getConnection')
-            ->will(self::returnValue($conn));
+            ->willReturn($conn);
 
         $filterCollection = $this->addMockFilterCollection($em);
         $filterCollection
@@ -311,7 +311,7 @@ class SQLFilterTest extends OrmFunctionalTestCase
 
         $em = $this->getMockEntityManager();
         $em->method('getConnection')
-           ->will(self::returnValue($conn));
+           ->willReturn($conn);
 
         $filterCollection = $this->addMockFilterCollection($em);
         $filterCollection
