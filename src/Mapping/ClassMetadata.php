@@ -10,7 +10,6 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\Instantiator\Instantiator;
 use Doctrine\Instantiator\InstantiatorInterface;
 use Doctrine\ORM\Cache\Exception\NonCacheableEntityAssociation;
-use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Id\AbstractIdGenerator;
 use Doctrine\Persistence\Mapping\ClassMetadata as PersistenceClassMetadata;
 use Doctrine\Persistence\Mapping\ReflectionService;
@@ -45,6 +44,7 @@ use function spl_object_id;
 use function sprintf;
 use function str_contains;
 use function str_replace;
+use function strpos;
 use function strtolower;
 use function trait_exists;
 use function trim;
@@ -216,13 +216,6 @@ class ClassMetadata implements PersistenceClassMetadata, Stringable
     public const GENERATED_ALWAYS = 2;
 
     /**
-     * READ-ONLY: The namespace the entity class is contained in.
-     *
-     * @todo Not really needed. Usage could be localized.
-     */
-    public string|null $namespace = null;
-
-    /**
      * READ-ONLY: The name of the entity class that is at the root of the mapped entity inheritance
      * hierarchy. If the entity is not part of a mapped inheritance hierarchy this is the same
      * as {@link $name}.
@@ -344,17 +337,6 @@ class ClassMetadata implements PersistenceClassMetadata, Stringable
      * @psalm-var array<string, string>
      */
     public array $fieldNames = [];
-
-    /**
-     * READ-ONLY: A map of field names to column names. Keys are field names and values column names.
-     * Used to look up column names from field names.
-     * This is the reverse lookup map of $_fieldNames.
-     *
-     * @deprecated 3.0 Remove this.
-     *
-     * @var mixed[]
-     */
-    public array $columnNames = [];
 
     /**
      * READ-ONLY: The discriminator value of this class.
@@ -681,14 +663,12 @@ class ClassMetadata implements PersistenceClassMetadata, Stringable
         // This metadata is always serialized/cached.
         $serialized = [
             'associationMappings',
-            'columnNames', //TODO: 3.0 Remove this. Can use fieldMappings[$fieldName]['columnName']
             'fieldMappings',
             'fieldNames',
             'embeddedClasses',
             'identifier',
             'isIdentifierComposite', // TODO: REMOVE
             'name',
-            'namespace', // TODO: REMOVE
             'table',
             'rootEntityName',
             'idGenerator', //TODO: Does not really need to be serialized. Could be moved to runtime.
@@ -864,7 +844,6 @@ class ClassMetadata implements PersistenceClassMetadata, Stringable
     public function initializeReflection(ReflectionService $reflService): void
     {
         $this->reflClass = $reflService->getClass($this->name);
-        $this->namespace = $reflService->getClassNamespace($this->name);
 
         if ($this->reflClass) {
             $this->name = $this->rootEntityName = $this->reflClass->name;
@@ -1038,7 +1017,9 @@ class ClassMetadata implements PersistenceClassMetadata, Stringable
      */
     public function getColumnName(string $fieldName): string
     {
-        return $this->columnNames[$fieldName] ?? $fieldName;
+        return isset($this->fieldMappings[$fieldName])
+            ? $this->fieldMappings[$fieldName]->columnName
+            : $fieldName;
     }
 
     /**
@@ -1186,8 +1167,6 @@ class ClassMetadata implements PersistenceClassMetadata, Stringable
             $mapping->columnName = trim($mapping->columnName, '`');
             $mapping->quoted     = true;
         }
-
-        $this->columnNames[$mapping->fieldName] = $mapping->columnName;
 
         if (isset($this->fieldNames[$mapping->columnName]) || ($this->discriminatorColumn && $this->discriminatorColumn->name === $mapping->columnName)) {
             throw MappingException::duplicateColumnName($this->name, $mapping->columnName);
@@ -1767,7 +1746,6 @@ class ClassMetadata implements PersistenceClassMetadata, Stringable
 
         unset($this->fieldMappings[$fieldName]);
         unset($this->fieldNames[$mapping->columnName]);
-        unset($this->columnNames[$mapping->fieldName]);
 
         $overrideMapping = $this->validateAndCompleteFieldMapping($overrideMapping);
 
@@ -1917,7 +1895,6 @@ class ClassMetadata implements PersistenceClassMetadata, Stringable
     public function addInheritedFieldMapping(FieldMapping $fieldMapping): void
     {
         $this->fieldMappings[$fieldMapping->fieldName] = $fieldMapping;
-        $this->columnNames[$fieldMapping->fieldName]   = $fieldMapping->columnName;
         $this->fieldNames[$fieldMapping->columnName]   = $fieldMapping->fieldName;
 
         if (isset($fieldMapping->generated)) {
@@ -2492,8 +2469,14 @@ class ClassMetadata implements PersistenceClassMetadata, Stringable
      */
     public function fullyQualifiedClassName(string $className): string
     {
-        if (! str_contains($className, '\\') && $this->namespace) {
-            return $this->namespace . '\\' . $className;
+        if (empty($className) || ! $this->reflClass) {
+            return $className;
+        }
+
+        $namespace = $this->reflClass->getNamespaceName();
+
+        if (strpos($className, '\\') === false && $namespace) {
+            return $namespace . '\\' . $className;
         }
 
         return $className;

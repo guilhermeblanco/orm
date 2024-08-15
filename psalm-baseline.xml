@@ -278,12 +278,6 @@
     </ArgumentTypeCoercion>
   </file>
   <file src="src/Mapping/ClassMetadata.php">
-    <DeprecatedProperty>
-      <code><![CDATA[$this->columnNames]]></code>
-      <code><![CDATA[$this->columnNames]]></code>
-      <code><![CDATA[$this->columnNames]]></code>
-      <code><![CDATA[$this->columnNames]]></code>
-    </DeprecatedProperty>
     <InvalidArgument>
       <code><![CDATA[$mapping]]></code>
       <code><![CDATA[$mapping]]></code>

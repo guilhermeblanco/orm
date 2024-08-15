@@ -687,7 +687,6 @@ abstract class MappingDriverTestCase extends OrmTestCase
         self::assertEquals('id', $adminMetadata->fieldMappings['id']->fieldName);
         self::assertEquals('user_id', $adminMetadata->fieldMappings['id']->columnName);
         self::assertEquals(['user_id' => 'id', 'user_name' => 'name'], $adminMetadata->fieldNames);
-        self::assertEquals(['id' => 'user_id', 'name' => 'user_name'], $adminMetadata->columnNames);
         self::assertEquals(150, $adminMetadata->fieldMappings['id']->length);
 
         self::assertEquals('name', $adminMetadata->fieldMappings['name']->fieldName);
@@ -700,7 +699,6 @@ abstract class MappingDriverTestCase extends OrmTestCase
         self::assertEquals('guest_id', $guestMetadata->fieldMappings['id']->columnName);
         self::assertEquals('id', $guestMetadata->fieldMappings['id']->fieldName);
         self::assertEquals(['guest_id' => 'id', 'guest_name' => 'name'], $guestMetadata->fieldNames);
-        self::assertEquals(['id' => 'guest_id', 'name' => 'guest_name'], $guestMetadata->columnNames);
         self::assertEquals(140, $guestMetadata->fieldMappings['id']->length);
 
         self::assertEquals('name', $guestMetadata->fieldMappings['name']->fieldName);
